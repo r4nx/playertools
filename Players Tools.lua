@@ -71,7 +71,7 @@ function main()
                 local result, pId = sampGetPlayerIdByCharHandle(pHandle)
                 if result then
                     local pName = sampGetPlayerNickname(pId)
-                    if hasValue(cfg.detectingPlayers, pName) then
+                    if arrayContains(cfg.detectingPlayers, pName) then
                         if cfg.detector.trackOnDetect and not setContains(pMarkers, pHandle) then
                             track(pHandle)
                         end
@@ -79,14 +79,13 @@ function main()
                             sampDisconnectWithReason(0)
                         end
                         printStringNow(string.format('~r~WARNING! ~y~%s[%d]~r~ detected!', pName, pId), 2000)
-                        
                     end
                 end
             end
         end
         -- Clean tracking players, that got out of stream
         for pHandle, pMarker in pairs(pMarkers) do
-            if not hasValue(instreamChars, pHandle) then
+            if not arrayContains(instreamChars, pHandle) then
                 removeBlip(pMarker)
                 -- sampAddChatMessage(string.format('Marker {DBD76F}%d{AAAAAA} removed {DB816F}by GC', pMarker), 0xAAAAAA)
                 pMarkers[pHandle] = nil
@@ -103,7 +102,7 @@ function cmdDet(params)
             printStringNow('~r~Wrong player ID/name', 1500)
             return
         end
-        if not hasValue(cfg.detectingPlayers, pName) then
+        if not arrayContains(cfg.detectingPlayers, pName) then
             table.insert(cfg.detectingPlayers, pName)
             LIP.save(cfgPath, cfg)
             printStringNow(string.format('~w~Added ~b~%s', pName), 1500)
@@ -123,7 +122,7 @@ function cmdUndet(params)
         printStringNow('~r~Wrong player ID/name', 1500)
         return
     end
-    if not hasValue(cfg.detectingPlayers, pName) then
+    if not arrayContains(cfg.detectingPlayers, pName) then
         printStringNow('~w~Not in detect list', 1500)
     else
         for index, value in ipairs(cfg.detectingPlayers) do
@@ -191,7 +190,7 @@ function cmdSI()
         local result, pId = sampGetPlayerIdByCharHandle(pHandle)
         if result then
             local pName = sampGetPlayerNickname(pId)
-            local pColor = string.format('%06X', bitand(0xFFFFFF, sampGetPlayerColor(pId)))
+            local pColor = string.format('%06X', bitAnd(0xFFFFFF, sampGetPlayerColor(pId)))
             table.insert(data, string.format('{%s}%s [%d]', pColor, pName, pId))
         end
     end
@@ -258,7 +257,7 @@ function isKeyCheckAvailable()
 	return not sampIsChatInputActive() and not sampIsDialogActive() and not (isSampfuncsLoaded and isSampfuncsConsoleActive())
 end
 
-function hasValue (tab, val)
+function arrayContains(tab, val)
     for index, value in ipairs(tab) do
         if value == val then
             return true
@@ -271,14 +270,14 @@ function setContains(set, key)
     return set[key] ~= nil
 end
 
-function bitand(a, b)
+function bitAnd(a, b)
     local result = 0
-    local bitval = 1
+    local bitVal = 1
     while a > 0 and b > 0 do
         if a % 2 == 1 and b % 2 == 1 then -- test the rightmost bits
-            result = result + bitval      -- set the current bit
+            result = result + bitVal      -- set the current bit
         end
-        bitval = bitval * 2 -- shift left
+        bitVal = bitVal * 2 -- shift left
         a = math.floor(a / 2) -- shift right
         b = math.floor(b / 2)
     end
