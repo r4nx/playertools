@@ -17,7 +17,7 @@
 script_name('Players Tools')
 script_author('Ranx')
 script_description('Useful tools to get information about players')
-script_version('1.0.0-alpha')
+script_version('1.1.0-alpha')
 
 require 'lib.moonloader'
 require 'lib.sampfuncs'
