@@ -22,11 +22,11 @@ script_version('1.0.0-alpha')
 require 'lib.moonloader'
 require 'lib.sampfuncs'
 
-local LIP = require 'lib.LIP'
+local inicfg = require 'inicfg'
 local useInspect, inspect = pcall(require, 'lib.inspect')
 
 local pMarkers = {}
-local cfgPath = getWorkingDirectory() .. '/config/playertools.ini'
+local cfgPath = 'playertools.ini'
 
 -- Default config
 local cfg = {
@@ -45,11 +45,7 @@ function main()
     if not isSampLoaded() or not isSampfuncsLoaded() then return end
     while not isSampAvailable() do wait(100) end
     
-    if not doesFileExist(cfgPath) then
-        LIP.save(cfgPath, cfg)
-    end
-    
-    cfg = LIP.load(cfgPath)
+    cfg = inicfg.load(cfg, cfgPath)
 
     sampRegisterChatCommand('pthelp', cmdPTHelp)
     sampRegisterChatCommand('ptreload', cmdPTReload)
@@ -104,14 +100,14 @@ function cmdDet(params)
         end
         if not arrayContains(cfg.detectingPlayers, pName) then
             table.insert(cfg.detectingPlayers, pName)
-            LIP.save(cfgPath, cfg)
+            inicfg.save(cfg, cfgPath)
             printStringNow(string.format('~w~Added ~b~%s', pName), 1500)
         else
             printStringNow('~w~Already in detect list', 1500)
         end
     else
         cfg.detector.state = not cfg.detector.state
-        LIP.save(cfgPath, cfg)
+        inicfg.save(cfg, cfgPath)
         printStringNow(string.format('Detect %s', cfg.detector.state and '~g~activated' or '~r~deactived'), 1500)
     end
 end
@@ -130,7 +126,7 @@ function cmdUndet(params)
                 table.remove(cfg.detectingPlayers, index)
             end
         end
-        LIP.save(cfgPath, cfg)
+        inicfg.save(cfg, cfgPath)
         printStringNow(string.format('~w~Removed ~b~%s', pName), 1500)
     end
 end
@@ -148,13 +144,13 @@ end
 
 function cmdDod()
     cfg.detector.disconnectOnDetect = not cfg.detector.disconnectOnDetect
-    LIP.save(cfgPath, cfg)
+    inicfg.save(cfg, cfgPath)
     printStringNow(string.format('DOD %s', cfg.detector.disconnectOnDetect and '~g~activated' or '~r~deactived'), 1500)
 end
 
 function cmdTod()
     cfg.detector.trackOnDetect = not cfg.detector.trackOnDetect
-    LIP.save(cfgPath, cfg)
+    inicfg.save(cfg, cfgPath)
     printStringNow(string.format('TOD %s', cfg.detector.trackOnDetect and '~g~activated' or '~r~deactived'), 1500)
 end
 
@@ -207,25 +203,21 @@ end
 function cmdPTHelp()
     local helpText =
     [[
-{4DA6FF}/pthelp{66FF66} - помощь по скрипту
-{4DA6FF}/ptreload{66FF66} - перезагрузить настройки
-{4DA6FF}/det <id/nickname>{66FF66} - детектировать игрока
-{4DA6FF}/undet <id/nickname>{66FF66} - перестать детектировать игрока
-{4DA6FF}/detectlist{66FF66} - список детектируемых игроков
-{4DA6FF}/dod{66FF66} - отключиться при нахождении игрока
-{4DA6FF}/tod{66FF66} - отслеживать игрока при нахождении
-{4DA6FF}/track <id>{66FF66} - отследить игрока (поставить на него метку)
-    {FFCC66}Для удаления всех меток используйте /track без параметров
-{4DA6FF}/si{66FF66} - список игроков в зоне прорисовки]]
-    sampShowDialog(1337761, '{FFCC00}Player Tools', helpText, 'Закрыть', '', DIALOG_STYLE_MSGBOX)
+{4DA6FF}/pthelp{66FF66} - пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+{4DA6FF}/ptreload{66FF66} - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+{4DA6FF}/det <id/nickname>{66FF66} - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+{4DA6FF}/undet <id/nickname>{66FF66} - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+{4DA6FF}/detectlist{66FF66} - пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+{4DA6FF}/dod{66FF66} - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+{4DA6FF}/tod{66FF66} - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+{4DA6FF}/track <id>{66FF66} - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ)
+    {FFCC66}пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ /track пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+{4DA6FF}/si{66FF66} - пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ]]
+    sampShowDialog(1337761, '{FFCC00}Player Tools', helpText, 'пїЅпїЅпїЅпїЅпїЅпїЅпїЅ', '', DIALOG_STYLE_MSGBOX)
 end
 
 function cmdPTReload()
-    if doesFileExist(cfgPath) then
-        cfg = LIP.load(cfgPath)
-    else
-        LIP.save(cfgPath, cfg)
-    end
+    cfg = inicfg.load(cfg, cfgPath)
     printStringNow('~w~Config reloaded', 1500)
 end
 
