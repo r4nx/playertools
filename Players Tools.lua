@@ -99,7 +99,7 @@ function cmdDet(params)
             return
         end
         if not arrayContains(cfg.detectingPlayers, pName) then
-            table.insert(cfg.detectingPlayers, pName)
+            cfg.detectingPlayers[#cfg.detectingPlayers + 1] = pName
             inicfg.save(cfg, cfgPath)
             printStringNow(string.format('~w~Added ~b~%s', pName), 1500)
         else
@@ -187,7 +187,7 @@ function cmdSI()
         if result then
             local pName = sampGetPlayerNickname(pId)
             local pColor = string.format('%06X', bitAnd(0xFFFFFF, sampGetPlayerColor(pId)))
-            table.insert(data, string.format('{%s}%s [%d]', pColor, pName, pId))
+            data[#data + 1] = string.format('{%s}%s [%d]', pColor, pName, pId)
         end
     end
     sampShowDialog(
