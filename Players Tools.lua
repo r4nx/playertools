@@ -26,6 +26,9 @@ local inicfg = require 'inicfg'
 local useInspect, inspect = pcall(require, 'lib.inspect')
 
 local pMarkers = {}
+local lastSeen = {}
+local lastSeenSphere = nil
+local lastSeenBlip = nil
 local cfgPath = 'playertools.ini'
 
 -- Default config
@@ -55,27 +58,28 @@ function main()
     sampRegisterChatCommand('dod', cmdDod)
     sampRegisterChatCommand('tod', cmdTod)
     sampRegisterChatCommand('track', cmdTrack)
+    sampRegisterChatCommand('lastseen', cmdLastSeen)
     sampRegisterChatCommand('si', cmdSI)
     if useInspect then
         sampRegisterChatCommand('dbgm', function() sampAddChatMessage(string.format('Markers: {AAAAAA}%s', inspect(pMarkers, {newline = '', indent = ''})), 0xEADE3A) end)
+        sampRegisterChatCommand('dbgls', function() print('\n// Last seen //\n' .. inspect(lastSeen)) end)
     end
 
     while true do
         local instreamChars = getAllChars()
-        if cfg.detector.state and sampIsLocalPlayerSpawned() then
-            for _, pHandle in pairs(instreamChars) do
-                local result, pId = sampGetPlayerIdByCharHandle(pHandle)
-                if result then
-                    local pName = sampGetPlayerNickname(pId)
-                    if arrayContains(cfg.detectingPlayers, pName) then
-                        if cfg.detector.trackOnDetect and not setContains(pMarkers, pHandle) then
-                            track(pHandle)
-                        end
-                        if cfg.detector.disconnectOnDetect then
-                            sampDisconnectWithReason(0)
-                        end
-                        printStringNow(string.format('~r~WARNING! ~y~%s[%d]~r~ detected!', pName, pId), 2000)
+        for _, pHandle in pairs(instreamChars) do
+            local result, pId = sampGetPlayerIdByCharHandle(pHandle)
+            if result then
+                local pName = sampGetPlayerNickname(pId)
+                lastSeen[pName] = {getCharCoordinates(pHandle)}
+                if cfg.detector.state and sampIsLocalPlayerSpawned() and arrayContains(cfg.detectingPlayers, pName) then
+                    if cfg.detector.trackOnDetect and not setContains(pMarkers, pHandle) then
+                        track(pHandle)
                     end
+                    if cfg.detector.disconnectOnDetect then
+                        sampDisconnectWithReason(0)
+                    end
+                    printStringNow(string.format('~r~WARNING! ~y~%s[%d]~r~ detected!', pName, pId), 2000)
                 end
             end
         end
@@ -173,6 +177,36 @@ function cmdTrack(params)
         printStringNow('~r~Tracking stopped', 1500)
     else
         printStringNow('~w~Using: /track <id>', 1500)
+    end
+end
+
+function cmdLastSeen(params)
+    if lastSeenSphere ~= nil or lastSeenBlip ~= nil then
+        removeSphere(lastSeenSphere)
+        removeBlip(lastSeenBlip)
+        lastSeenSphere = nil
+        lastSeenBlip = nil
+        printStringNow('~r~Marker removed', 1500)
+    end
+
+    if string.len(params) > 0 then
+        local pName = getPlayerNameByParams(params)
+        if not pName then
+            printStringNow('~r~Wrong player ID/name', 1500)
+            return
+        end
+
+        local pCoords = lastSeen[pName]
+        if pCoords == nil then
+            printStringNow('~r~Player not found', 1500)
+            return
+        end
+
+        local pX, pY, pZ = unpack(pCoords)
+        lastSeenSphere = addSphere(pX, pY, pZ, 2)
+        lastSeenBlip = addBlipForCoord(px, pY, pZ)
+        changeBlipColour(lastSeenBlip, bit.tobit(0xCC1111FF))
+        printStringNow('~w~Marker set', 1500)
     end
 end
 
