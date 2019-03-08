@@ -223,7 +223,7 @@ end
 
 function track(pHandle)
     local pMarker = addBlipForChar(pHandle)
-    changeBlipColour(pMarker, 7)
+    changeBlipColour(pMarker, bit.tobit(0xFF00FFFF))
     pMarkers[pHandle] = pMarker
     return pMarker
 end
